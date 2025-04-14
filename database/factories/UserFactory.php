@@ -23,8 +23,15 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $firstName = fake()->firstName();
+        $lastName = fake()->lastName();
+        $fullName = sprintf('%s %s', $firstName, $lastName);
+
         return [
-            'name' => fake()->name(),
+            'name' => $fullName,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'username' => Str::of($fullName)->squish()->trim()->lower()->replace(' ', '.'),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
@@ -40,5 +47,23 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Create a default user admin
+     *
+     * @return \Illuminate\Database\Eloquent\Factories\Factory
+     */
+    public function admin(): Factory
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'name' => 'John Doe',
+                'first_name' => 'John',
+                'last_name' => 'Doe',
+                'username' => 'john.doe',
+                'email' => 'john.doe@praxxys.com',
+            ];
+        });
     }
 }
