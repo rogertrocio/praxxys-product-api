@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
 class ProductRequest extends FormRequest
 {
@@ -27,6 +28,10 @@ class ProductRequest extends FormRequest
             'category_id' => ['required', Rule::exists('categories', 'id')],
             'description' => ['nullable', 'min:3'],
             'date_time' => ['required',  Rule::date()->format('Y-m-d H:i:s')],
+            'images' => ['nullable', 'array'],
+            'images.*' => ['required', File::image()->min('1kb')->max('2mb')],
+            'old_images' => ['sometimes', 'array'],
+            'old_images.*' => ['nullable', Rule::exists('images', 'id')]
         ];
     }
 }

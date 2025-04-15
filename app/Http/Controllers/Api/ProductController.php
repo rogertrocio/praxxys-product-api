@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductResource;
+use App\Models\Image;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -46,11 +48,13 @@ class ProductController extends Controller
 
         $product = Product::create($validated);
 
-        // Todo: Attach multiple images
+        if (isset($validated['images']) && count($validated['images']) >  0) {
+            $this->uploadImage($validated['images'], $product);
+        }
 
         $product->refresh();
 
-        return new ProductResource($product->load('category'));
+        return new ProductResource($product->load('category', 'images'));
     }
 
     /**
@@ -64,7 +68,7 @@ class ProductController extends Controller
      */
     public function show(Product $product): ProductResource
     {
-        return new ProductResource($product->load('category'));
+        return new ProductResource($product->load('category', 'images'));
     }
 
     /**
@@ -83,11 +87,30 @@ class ProductController extends Controller
 
         $product->update($validated);
 
-        // Todo: Update multiple images
+        /**
+         * Remove existing associated images of the product.
+         */
+        if (isset($validated['old_images']) && $product->images->count() > 0) {
+            foreach ($product->images as $image) {
+                $exists = in_array($image->id, $validated['old_images']);
+
+                if (!$exists) {
+                    Storage::delete($image->path);
+                    $image->delete();
+                }
+            }
+        }
+
+        /**
+         * Create new images for the product.
+         */
+        if (isset($validated['images']) && count($validated['images']) >  0) {
+            $this->uploadImage($validated['images'], $product);
+        }
 
         $product->refresh();
 
-        return new ProductResource($product->load('category'));
+        return new ProductResource($product->load('category', 'images'));
     }
 
     /**
@@ -101,10 +124,42 @@ class ProductController extends Controller
      */
     public function destroy(Product $product): Response
     {
+        Storage::deleteDirectory("products/{$product->id}");
+
+        $product->images()->delete();
+
         $product->delete();
 
-        // Todo: Delete associated images
-
         return response()->noContent();
+    }
+
+    /**
+     * Save images of the product.
+     *
+     * @param array|null $images
+     * @param \App\Models\Product $product
+     * @return void
+     */
+    private function uploadImage(?array $images, Product $product): void
+    {
+        foreach ($images as $image) {
+            $properties = [
+                'client_original_name' => $image->getClientOriginalName(),
+                'client_original_extension' => $image->getClientOriginalExtension(),
+                'hash_name' => $image->hashName(),
+                'extension' => $image->extension(),
+                'size' => $image->getSize(),
+            ];
+
+            $path = Storage::putFile("products/{$product->id}", $image);
+
+            $product->images()->save(
+                Image::make([
+                    'path' => $path,
+                    'file_name' => $image->hashName(),
+                    'properties' => $properties
+                ])
+            );
+        }
     }
 }
