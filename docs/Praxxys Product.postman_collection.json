@@ -290,7 +290,7 @@
 							"variable": [
 								{
 									"key": "id",
-									"value": "6"
+									"value": "1"
 								}
 							]
 						}
@@ -536,6 +536,35 @@
 									"key": "id",
 									"value": "21"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Common",
+			"item": [
+				{
+					"name": "Category",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/common/category",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"common",
+								"category"
 							]
 						}
 					},
