@@ -22,7 +22,7 @@ class CategoryController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        $categories = Category::orderBy('name', 'asc')->get();
+        $categories = Category::orderBy('name', 'asc')->paginate();
 
         return CategoryResource::collection($categories);
     }
@@ -93,7 +93,11 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category): Response
     {
-        // Todo: Check if the category assigned to some products.
+        abort_if(
+            $category->products->count() > 0, 403,
+            "The {$category->name} is assigned to some products. Category cannot be deleted."
+        );
+
         $category->delete();
 
         return response()->noContent();
