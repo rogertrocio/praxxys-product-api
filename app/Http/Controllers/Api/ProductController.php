@@ -26,9 +26,9 @@ class ProductController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $products = Product::commonFilters($request->only('filter'))
-            ->with('category')
-            ->orderBy('created_at')
-            ->paginate();
+            ->with('category', 'images')
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
 
         return ProductResource::collection($products);
     }
