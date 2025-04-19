@@ -31,7 +31,7 @@ class ProductRequest extends FormRequest
             'images' => ['nullable', 'array'],
             'images.*' => ['required', File::image()->min('1kb')->max('2mb')],
             'old_images' => ['sometimes', 'array'],
-            'old_images.*' => ['nullable', Rule::exists('images', 'id')]
+            // 'old_images.*' => ['required_with:old_images', Rule::exists('images', 'id')],
         ];
     }
 }
