@@ -59,7 +59,8 @@
 								},
 								{
 									"key": "remember",
-									"value": "true",
+									"value": "1",
+									"description": "1 = true, 0 = false",
 									"type": "text"
 								}
 							]
