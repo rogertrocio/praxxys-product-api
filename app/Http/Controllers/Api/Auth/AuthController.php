@@ -39,6 +39,7 @@ class AuthController extends Controller implements HasMiddleware
         $credentials = $request->validate([
             'username' => 'required',
             'password' => 'required',
+            'remember' => 'boolean',
         ]);
 
         $user = User::where('username', $credentials['username'])
@@ -47,8 +48,8 @@ class AuthController extends Controller implements HasMiddleware
 
         throw_if(
             !$user ||
-            !Auth::attempt(['username' => $user?->username, 'password' => $credentials['password']]) &&
-            !Auth::attempt(['email' => $user?->email, 'password' => $credentials['password']]),
+            !Auth::attempt(['username' => $user?->username, 'password' => $credentials['password']], $request->remember) &&
+            !Auth::attempt(['email' => $user?->email, 'password' => $credentials['password']], $request->remember),
             ValidationException::withMessages([
                 'username' => ['The provided credentials do not match our records.']
             ])
